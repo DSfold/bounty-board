@@ -1,11 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateBountyDto } from './dto/create-bounty.dto';
 import { UpdateBountyDto } from './dto/update-bounty.dto';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Bounty } from './entities/bounty.entity';
 
 @Injectable()
 export class BountyService {
-  create(createBountyDto: CreateBountyDto) {
-    return 'This action adds a new bounty';
+  constructor(
+    @InjectRepository(Bounty)
+    private readonly bountyRepository: Repository<Bounty>
+  ) {}
+
+  async create(createBountyDto: CreateBountyDto, id: string) {
+    const isExist = await this.bountyRepository.findBy({
+      createdBy: { id },
+      title: createBountyDto.title,
+    });
+
+    if (isExist.length)
+      throw new BadRequestException('This bounty already exists');
+    const newBounty = {
+      title: createBountyDto.title,
+      description: createBountyDto.description,
+      target: createBountyDto.target,
+      reward: createBountyDto.reward,
+      planet: createBountyDto.planet,
+      createdBy: { id },
+    };
+
+    return await this.bountyRepository.save(newBounty);
   }
 
   findAll() {

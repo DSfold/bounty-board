@@ -6,18 +6,22 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { BountyService } from './bounty.service';
 import { CreateBountyDto } from './dto/create-bounty.dto';
 import { UpdateBountyDto } from './dto/update-bounty.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('bounty')
 export class BountyController {
   constructor(private readonly bountyService: BountyService) {}
 
   @Post()
-  create(@Body() createBountyDto: CreateBountyDto) {
-    return this.bountyService.create(createBountyDto);
+  @UseGuards(JwtAuthGuard)
+  create(@Body() createBountyDto: CreateBountyDto, @Req() req) {
+    return this.bountyService.create(createBountyDto, req.user.number);
   }
 
   @Get()

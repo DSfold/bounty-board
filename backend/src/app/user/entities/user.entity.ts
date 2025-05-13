@@ -23,11 +23,9 @@ export class User {
   @OneToMany(() => Bounty, (bounty) => bounty.createdBy, {
     onDelete: 'DEFAULT',
   })
-  @Optional()
   bountiesCreated: Bounty[];
 
   @OneToMany(() => Bounty, (bounty) => bounty.claimedBy)
-  @Optional()
   bountiesClaimed: Bounty[];
 
   @CreateDateColumn()

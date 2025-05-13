@@ -8,7 +8,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
-import { Optional } from '@nestjs/common';
 
 @Entity()
 export class Bounty {
@@ -35,8 +34,7 @@ export class Bounty {
   createdBy: User;
 
   @ManyToOne(() => User, (user) => user.bountiesClaimed)
-  @JoinColumn({ name: 'claimedByBy_id' })
-  @Optional()
+  @JoinColumn({ name: 'claimedBy_id' })
   claimedBy: User;
 
   @CreateDateColumn()

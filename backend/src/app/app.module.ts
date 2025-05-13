@@ -6,6 +6,8 @@ import { BountyModule } from './bounty/bounty.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './user/entities/user.entity';
+import { Bounty } from './bounty/entities/bounty.entity';
 
 @Module({
   imports: [
@@ -26,10 +28,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         database: configService.get('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true,
-        entities: [__dirname + '/**/*.entity{.js, .ts}'],
+        entities: [__dirname + '/../**/*.entity{.js, .ts}'],
       }),
       inject: [ConfigService],
     }),
+    TypeOrmModule.forFeature([User, Bounty]),
   ],
   controllers: [AppController],
   providers: [AppService],
