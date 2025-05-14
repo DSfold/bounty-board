@@ -7,7 +7,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Bounty } from '../../bounty/entities/bounty.entity';
-import { Optional } from '@nestjs/common';
 
 @Entity()
 export class User {
