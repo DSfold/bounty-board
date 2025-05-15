@@ -40,7 +40,6 @@ export class BountyController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   findAll() {
     return this.bountyService.findAll();
   }

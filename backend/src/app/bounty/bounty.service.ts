@@ -8,7 +8,6 @@ import { UpdateBountyDto } from './dto/update-bounty.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Bounty } from './entities/bounty.entity';
-import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class BountyService {
