@@ -1,3 +1,5 @@
+'use client';
+
 import {
   userLoginSchema,
   UserLoginSchemaValues,
@@ -5,78 +7,120 @@ import {
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
+import clsx from 'clsx';
+import { useRouter } from 'next/navigation';
+import { useAuthStore, UserType } from '../store/auth';
+import useGetAuth from 'frontend/hooks/useGetAuth';
 
 export default function AuthModal() {
+  const { setUser } = useAuthStore();
+  const { replace } = useRouter();
+  const { tab, setTab, registerMutation, loginMutation } = useGetAuth();
+
   const {
     register,
     handleSubmit,
     setError,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<UserLoginSchemaValues>({
     resolver: zodResolver(userLoginSchema),
   });
-  const onSubmit: SubmitHandler<UserLoginSchemaValues> = async (data) => {
+
+  const onSubmit: SubmitHandler<UserLoginSchemaValues> = async (_data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log(data);
+      if (tab === 'login') {
+        const response = await loginMutation.mutateAsync(_data);
+
+        setUser(response.data as UserType);
+      } else {
+        const response = await registerMutation.mutateAsync(_data);
+
+        setUser(response.data as UserType);
+      }
+      replace('/');
+      reset();
     } catch (error: any) {
       setError('root', {
-        message: error.message,
+        message:
+          error.response?.data?.message || error.message || 'Unknown error',
       });
     }
   };
+
   return (
     <>
-      <div className="h-screen w-full bg-slate-700 opacity-25 absolute top-0 left-0 z-0"></div>
-      <form
-        aria-label="login-form"
-        className="flex relative flex-col justify-center gap-3 bg-slate-900 text-white w-1/4 min-h-[200px] my-auto mx-auto z-20 px-4 py-4 rounded-md mt-20"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className="w-full" aria-label="login">
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-10" />
+      <div className="relative z-20 max-w-md mx-auto mt-24 bg-white rounded-2xl shadow-2xl overflow-hidden text-gray-800">
+        <div className="flex">
+          {['login', 'register'].map((type) => (
+            <button
+              key={type}
+              className={clsx(
+                'w-1/2 py-3 text-lg font-semibold transition-colors duration-300',
+                {
+                  'bg-gray-600 text-white': tab === type,
+                  'bg-gray-100 text-gray-700 hover:bg-gray-200': tab !== type,
+                }
+              )}
+              onClick={() => setTab(type as 'login' | 'register')}
+            >
+              {type === 'login' ? 'Sign In' : 'Sign Up'}
+            </button>
+          ))}
+        </div>
+        <form
+          aria-label="auth-form"
+          className="p-6 flex flex-col gap-4"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <input
-            className="h-[50px] w-full flex-none px-3 outline-none text-gray-700 focus:border-2 border-blue-400 rounded-lg"
             {...register('email')}
-            type="text"
+            type="email"
             placeholder="Email"
+            className="h-12 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {errors.email && (
-            <div className="text-red-500 shrink text-sm h-2 my-1">
-              {errors.email.message}
-            </div>
+            <p className="text-red-500 text-sm">{errors.email.message}</p>
           )}
-        </div>
-        <div className="w-full" aria-label="password">
+
           <input
-            className="h-[50px] w-full flex-none px-3 outline-none text-gray-700 focus:border-2 border-blue-400 rounded-lg"
             {...register('password')}
             type="password"
             placeholder="Password"
+            className="h-12 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {errors.password && (
-            <div className="text-red-500 text-sm shrink max-h-2 my-1">
-              {errors.password.message}
-            </div>
+            <p className="text-red-500 text-sm">{errors.password.message}</p>
           )}
-        </div>
-        <div className="flex flex-row justify-around gap-4">
-          <button
-            disabled={isSubmitting}
-            type="submit"
-            className="p-2 bg-green-500 bg-gradient-to-r from-green-400 to-green-600 opacity-80  w-1/2"
-          >
-            {isSubmitting ? 'Loading...' : 'Submit'}
-          </button>
-          <Link href={'/'} className="p-4 rounded-lg border border-white w-1/2">
-            Cancel
-          </Link>
-        </div>
-        {errors.root && (
-          <div className="text-red-500 text-sm shrink h-2">
-            {errors.root.message}
+
+          <div className="flex gap-4 mt-2">
+            <Link
+              href="/"
+              className="flex-1 py-2 text-center border border-gray-400 rounded-lg text-gray-700 hover:bg-gray-100"
+            >
+              Cancel
+            </Link>
+            <button
+              disabled={isSubmitting}
+              type="submit"
+              className="flex-1 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-300"
+            >
+              {isSubmitting
+                ? 'Loading...'
+                : tab === 'login'
+                ? 'Login'
+                : 'Register'}
+            </button>
           </div>
-        )}
-      </form>
+
+          {errors.root && (
+            <p className="text-red-500 text-sm text-center mt-2">
+              {errors.root.message}
+            </p>
+          )}
+        </form>
+      </div>
     </>
   );
 }

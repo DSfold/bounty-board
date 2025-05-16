@@ -4,9 +4,11 @@ import { useState } from 'react';
 
 export default function useOpenModal() {
   const [open, setOpen] = useState<boolean>(false);
+  const [cardId, setCardId] = useState<number>();
 
-  const handleOpen = () => {
+  const handleOpen = (id?: number) => {
     setOpen(true);
+    setCardId(id);
     document.body.style.overflow = 'hidden';
   };
 
@@ -17,6 +19,7 @@ export default function useOpenModal() {
 
   return {
     open,
+    cardId,
     handleOpen,
     handleClose,
   };

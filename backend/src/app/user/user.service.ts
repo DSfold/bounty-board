@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
@@ -25,12 +24,10 @@ export class UserService {
       email: createUserDto.email,
       password: await argon2.hash(createUserDto.password),
     });
-    const token = this.jwtService.sign({ email: createUserDto.email });
-    return { user, token };
-  }
-
-  findAll() {
-    return `This action returns all user`;
+    const email = user.email;
+    const id = user.id;
+    const access_token = this.jwtService.sign({ email: createUserDto.email });
+    return { email, id, access_token };
   }
 
   async findOne(email: string) {
@@ -39,13 +36,5 @@ export class UserService {
         email,
       },
     });
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
   }
 }

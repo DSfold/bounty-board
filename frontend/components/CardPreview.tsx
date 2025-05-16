@@ -1,5 +1,7 @@
 import React from 'react';
 import { Ping } from './Ping';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from 'frontend/store/auth';
 
 interface ICardPreviewProps {
   title: string;
@@ -18,9 +20,12 @@ export default function CardPreview({
   claimed,
   onClick,
 }: ICardPreviewProps) {
+  const { replace } = useRouter();
+  const { user } = useAuthStore();
+
   return (
     <li
-      onClick={onClick}
+      onClick={user ? onClick : () => replace('/login')}
       className="relative w-full h-[110px] rounded-lg border-2 border-black cursor-pointer hover:shadow-xl hover:shadow-cyan-200 hover:-translate-y-2 duration-200 ease-in"
     >
       {claimed ? (
@@ -33,7 +38,7 @@ export default function CardPreview({
           {title}
         </h3>
       </div>
-      <div className="flex h-2/3 justify-between text-xs md:text-md lg:text-[14px] p-2 bg-gray-300">
+      <div className="rounded-b-lg flex h-2/3 justify-between text-xs md:text-md lg:text-[14px] p-2 bg-gray-300">
         <div className="flex flex-col justify-between">
           <h3 className="font-bold">{target}</h3>
         </div>

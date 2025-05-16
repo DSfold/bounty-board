@@ -28,7 +28,7 @@ import { Bounty } from './bounty/entities/bounty.entity';
         database: configService.get('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true,
-        entities: [__dirname + '/../**/*.entity{.js, .ts}'],
+        entities: [__dirname + '/../../**/*.entity{.js, .ts}'],
       }),
       inject: [ConfigService],
     }),

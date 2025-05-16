@@ -6,7 +6,7 @@ import { Bounty } from './entities/bounty.entity';
 import { User } from '../user/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Bounty]), User],
+  imports: [TypeOrmModule.forFeature([Bounty, User])],
   controllers: [BountyController],
   providers: [BountyService],
 })

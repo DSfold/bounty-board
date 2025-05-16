@@ -18,3 +18,42 @@ export const newBountySchema = z.object({
 });
 
 export type NewBountySchemaValues = z.infer<typeof newBountySchema>;
+
+export const allBountiesResponseSchema = z.object({
+  title: z.string(),
+  target: z.string(),
+  planet: z.string(),
+  reward: z.number(),
+  id: z.number(),
+  claimedBy:
+    z.object({
+      id: z.number(),
+    }) || null,
+});
+
+export type AllBountiesResponseSchemaValues = z.infer<
+  typeof allBountiesResponseSchema
+>[];
+
+export const detailedBountyResponseSchema = z.object({
+  title: z.string(),
+  target: z.string(),
+  planet: z.string(),
+  description: z.string(),
+  reward: z.number(),
+  id: z.number(),
+  claimedBy:
+    z.object({
+      id: z.number(),
+      email: z.string(),
+    }) || null,
+  createdBy:
+    z.object({
+      id: z.number(),
+      email: z.string(),
+    }) || null,
+});
+
+export type DetailedBountyResponseSchemaValues = z.infer<
+  typeof detailedBountyResponseSchema
+>;

@@ -10,6 +10,7 @@ import {
   UseGuards,
   UsePipes,
   ValidationPipe,
+  Request,
 } from '@nestjs/common';
 import { BountyService } from './bounty.service';
 import { CreateBountyDto } from './dto/create-bounty.dto';
@@ -24,24 +25,24 @@ export class BountyController {
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   create(@Body() createBountyDto: CreateBountyDto, @Req() req) {
-    return this.bountyService.create(createBountyDto, req.user.number);
-  }
-
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  findAllCreatedBy(@Req() req) {
-    return this.bountyService.findAllCreatedBy(req.user.id);
-  }
-
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  findAllClaimedBy(@Req() req) {
-    return this.bountyService.findAllClaimedBy(req.user.id);
+    return this.bountyService.create(createBountyDto, req.user.id);
   }
 
   @Get()
   findAll() {
     return this.bountyService.findAll();
+  }
+
+  @Get('/createdBy')
+  @UseGuards(JwtAuthGuard)
+  findAllCreatedBy(@Req() req) {
+    return this.bountyService.findAllCreatedBy(req.user.id);
+  }
+
+  @Get('/claimedBy')
+  @UseGuards(JwtAuthGuard)
+  findAllClaimedBy(@Req() req) {
+    return this.bountyService.findAllClaimedBy(req.user.id);
   }
 
   @Get(':id')

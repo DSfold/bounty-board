@@ -5,15 +5,18 @@ import {
 } from '@nestjs/common';
 import { CreateBountyDto } from './dto/create-bounty.dto';
 import { UpdateBountyDto } from './dto/update-bounty.dto';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Bounty } from './entities/bounty.entity';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class BountyService {
   constructor(
     @InjectRepository(Bounty)
-    private readonly bountyRepository: Repository<Bounty>
+    private readonly bountyRepository: Repository<Bounty>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>
   ) {}
 
   async create(createBountyDto: CreateBountyDto, id: string) {
@@ -24,24 +27,40 @@ export class BountyService {
 
     if (isExist.length)
       throw new BadRequestException('This bounty already exists');
+    const activeUser = await this.userRepository.findOne({
+      where: {
+        id,
+      },
+    });
     const newBounty = {
       title: createBountyDto.title,
       description: createBountyDto.description,
       target: createBountyDto.target,
       reward: createBountyDto.reward,
       planet: createBountyDto.planet,
-      createdBy: { id },
+
+      createdBy: activeUser,
     };
 
     return await this.bountyRepository.save(newBounty);
   }
 
   async findAll() {
-    return await this.bountyRepository.find({
-      where: {
-        claimedBy: { id: '' },
+    const allbounties = await this.bountyRepository.find({
+      relations: { claimedBy: true },
+      order: { createdAt: 'DESC' },
+      select: {
+        target: true,
+        reward: true,
+        title: true,
+        id: true,
+        planet: true,
+        claimedBy: {
+          id: true,
+        },
       },
     });
+    return allbounties;
   }
 
   async findAllCreatedBy(id: string) {
@@ -52,6 +71,17 @@ export class BountyService {
       relations: {
         claimedBy: true,
       },
+      order: { createdAt: 'DESC' },
+      select: {
+        target: true,
+        reward: true,
+        title: true,
+        id: true,
+        planet: true,
+        claimedBy: {
+          id: true,
+        },
+      },
     });
   }
 
@@ -61,7 +91,18 @@ export class BountyService {
         claimedBy: { id },
       },
       relations: {
-        createdBy: true,
+        claimedBy: true,
+      },
+      order: { createdAt: 'DESC' },
+      select: {
+        target: true,
+        reward: true,
+        title: true,
+        id: true,
+        planet: true,
+        claimedBy: {
+          id: true,
+        },
       },
     });
   }
@@ -73,6 +114,22 @@ export class BountyService {
         claimedBy: true,
         createdBy: true,
       },
+      select: {
+        description: true,
+        id: true,
+        planet: true,
+        reward: true,
+        target: true,
+        title: true,
+        claimedBy: {
+          id: true,
+          email: true,
+        },
+        createdBy: {
+          id: true,
+          email: true,
+        },
+      },
     });
 
     if (!existingBounty) throw new NotFoundException('Bounty does not exist');
@@ -82,20 +139,30 @@ export class BountyService {
   async update(id: number, userId: string, updateBountyDto: UpdateBountyDto) {
     const existingBounty = await this.bountyRepository.findOne({
       where: { id },
+      relations: ['createdBy'],
     });
+
+    const activeUser = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
     if (!existingBounty) throw new NotFoundException('Bounty does not exist');
     if (existingBounty.createdBy.id === userId)
       throw new BadRequestException('Cannot claim your own bounty');
-    return await this.bountyRepository.update(id, updateBountyDto);
+    return await this.bountyRepository.update(id, {
+      ...updateBountyDto,
+      claimedBy: { ...activeUser },
+    });
   }
 
   async remove(id: number, userId: string) {
     const bounty = await this.bountyRepository.findOne({
       where: { id },
+      relations: ['createdBy'],
     });
     if (!bounty) throw new NotFoundException('Bounty does not exist');
-    if (bounty.createdBy.id !== userId)
-      throw new BadRequestException('Cannot delete bounty that is not yours');
     return await this.bountyRepository.delete(id);
   }
 }
